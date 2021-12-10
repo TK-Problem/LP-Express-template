@@ -9,6 +9,10 @@ async def create_browser():
     return browser, page
 
 
+# async def close_browser(browser):
+#     await browser.close()
+
+
 async def wait_till_appears(page, xpath, seconds=10):
     for i in range(seconds*2):
         e = await page.xpath(xpath)
@@ -43,11 +47,7 @@ async def login(page, usr, psw):
     # get page source
     response = await page.content()
 
-    # check if login was successful
-    if 'Pridėti siuntą' in str(response):
-        return page, True
-    else:
-        return page, False
+    return page, str(response)
 
 
 async def upload_data(page):

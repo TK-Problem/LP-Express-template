@@ -7,7 +7,7 @@ header = html.Header(
         [
             dbc.Col(
                 [
-                    html.Img(id="logo-image", src='assets/app-logo.png', height='100px'),
+                    html.Img(id="logo-image", src='assets/app-logo.svg', height='100px'),
                 ],
                 width={"size": 3},
             ),

@@ -191,6 +191,7 @@ def update_output(list_of_contents, list_of_names):
      Output('login-btn', 'children'),
      Output('login-btn', 'color'),
      Output('login-btn', 'disabled'),
+     Output('upload-btn', 'children'),
      Output('upload-btn', 'disabled')],
     [Input('input-usr', 'value'),
      Input('input-psw', 'value'),
@@ -206,15 +207,17 @@ def buttons_callback(usr, psw, n_login, cond, n_upload):
     # login to LP-Express
     if n_login and cond:
         page, x = loop.run_until_complete(login(page, usr, psw))
-        if x:
-            return 'Sėkmingai prisijungta prie svetainės.', 'Prisijungta', "success", True, False
+        # check if login was successful
+        if 'Pridėti siuntą' in x:
+            return 'Sėkmingai prisijungta prie svetainės.', 'Prisijungta', "success", True, no_update, False
         else:
-            return 'Nepavyko, perkraukite svetainę.', 'Nepavyko', "danger", True, True
+            return 'Nepavyko, perkraukite svetainę.', 'Nepavyko', "danger", True, no_update, True
 
     # upload data to LP-Express
     if n_upload:
         loop.run_until_complete(upload_data(page))
-        return 'Duomenys sėkmingai įkelti.', no_update, no_update, no_update, True
+        # loop.run_until_complete(close_browser(browser))
+        return 'Duomenys sėkmingai įkelti.', no_update, no_update, no_update, "Įkelta", True
 
     return no_update
 
