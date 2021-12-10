@@ -168,27 +168,6 @@ def parse_contents(contents, filename):
     return f'{filename} successfully loaded.'
 
 
-# def parse_contents(contents, filename):
-#     content_type, content_string = contents.split(',')
-#     decoded = base64.b64decode(content_string)
-#     try:
-#         if 'csv' in filename:
-#             # Assume that the user uploaded a CSV file
-#             df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
-#     except Exception as e:
-#         print(e)
-#         return html.Div([
-#             'There was an error processing this file.'
-#         ])
-#
-#     return html.Div([
-#         html.P(filename, className="card-text"),
-#         dash_table.DataTable(data=df.to_dict('records'), page_size=10,
-#                              style_table={'overflowX': 'auto'},
-#                              columns=[{'name': i, 'id': i} for i in df.columns]),
-#     ])
-
-
 @app.callback([Output('output-data-upload', 'children'),
                Output('orders-table', 'children'),
                Output('tabs-collapse', 'is_open')],
