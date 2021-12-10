@@ -211,7 +211,8 @@ def buttons_callback(usr, psw, n_login, cond, n_upload):
         if 'Pridėti siuntą' in x:
             return 'Sėkmingai prisijungta prie svetainės.', 'Prisijungta', "success", True, no_update, False
         else:
-            return 'Nepavyko, perkraukite svetainę.', 'Nepavyko', "danger", True, no_update, True
+            msg = 'Nepavyko, perkraukite svetainę.\n' + x
+            return msg, 'Nepavyko', "danger", True, no_update, True
 
     # upload data to LP-Express
     if n_upload:
