@@ -81,7 +81,9 @@ tab1_content = dbc.Card(
         [
             html.Div(id='orders-table'),
             html.Hr(),
-            html.P(id='output-data-upload'),
+            html.P(id='output-data-upload', className="card-text"),
+            html.Br(),
+            dbc.Button("Skaičiuoti", id="calculate-btn", n_clicks=0, color="primary", className="me-1"),
         ]
     ),
     className="mt-3",
@@ -90,8 +92,10 @@ tab1_content = dbc.Card(
 tab2_content = dbc.Card(
     dbc.CardBody(
         [
-            html.H4("Antraštė (modifikuoti duomenys)", className="card-title"),
-            html.P("Laikinas tekstas (PLACEHOLDER)", className="card-text")
+            html.Div(id='parcels-table'),
+            html.Hr(),
+            html.P("Laikinas tekstas (PLACEHOLDER)", className="card-text"),
+            html.Br()
         ]
     ),
     className="mt-3",

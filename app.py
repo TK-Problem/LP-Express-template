@@ -1,7 +1,6 @@
 # packages for dash app
 from dash import Dash, no_update, dash_table
 from dash.dependencies import Input, Output, State
-import pandas as pd
 # packages for uploading data to dash app
 import base64
 import io
@@ -9,6 +8,9 @@ from layouts import *
 # functions for webdriver (uploading data to LPE)
 from webdriver import create_browser, login_to_lpe, upload_demo_parcel
 import asyncio
+# packages and functions for data manipulation
+import pandas as pd
+from utils import calculate_order_props
 
 app = Dash(__name__,
            meta_tags=[{"name": "viewport", "content": "width=device-width"}],
@@ -23,7 +25,7 @@ browser, page = loop.run_until_complete(create_browser())
 # create empty pandas DataFrame for storing Etsy sales orders
 df_orders = pd.DataFrame()
 # create empty pandas DataFrame for storing LPE parcel information
-# df_parcels = pd.DataFrame()
+df_parcels = pd.DataFrame()
 
 app.layout = html.Div(
     [
@@ -55,15 +57,14 @@ def parse_contents(contents, filename):
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
             df_orders = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
-            # Choose only specific columns
-            df_orders = df_orders[['Item Name', 'Quantity', 'Price', 'Order Shipping', 'Date Shipped',
-                                   'Ship Name', 'Ship Address1', 'Ship Address2', 'Ship City', 'Ship State',
-                                   'Ship Zipcode', 'Ship Country', 'Variations']]
-
             # count all rows
             before = len(df_orders)
-            # take only un-shiped data
+            # take only unshiped orders
             df_orders = df_orders.loc[df_orders['Date Shipped'].isna()].reset_index(drop=True)
+            # Choose only specific columns
+            df_orders = df_orders[['Sale Date', 'Item Name', 'Variations', 'Quantity', 'Price', 'Order Shipping',
+                                   'Ship Name', 'Ship Address1', 'Ship Address2', 'Ship City', 'Ship State',
+                                   'Ship Zipcode', 'Ship Country']]
             # count unshiped orders
             after = len(df_orders)
             # generate message for app user
@@ -83,16 +84,33 @@ def parse_contents(contents, filename):
                Output('tabs-collapse', 'is_open')],
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'))
-def update_output(list_of_contents, list_of_names):
+def upload_csv(list_of_contents, list_of_names):
     global df_orders
     if list_of_contents is not None:
         msg = [parse_contents(c, n) for c, n in zip(list_of_contents, list_of_names)]
+        # calculate table properties (order weights and volumes)
+        df_orders = calculate_order_props(df_orders)
         # generate Dash table
         dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=50,
                                       style_table={'overflowX': 'auto'},
                                       columns=[{'name': i, 'id': i} for i in df_orders.columns])
 
         return msg, dtable, True
+    return no_update
+
+
+@app.callback(
+    Output('parcels-table', 'children'),
+    Input('calculate-btn', 'n_clicks'),
+)
+def buttons_callback(n_clicks):
+    global df_orders
+    if n_clicks:
+        # generate Dash table
+        # dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=50,
+        #                               style_table={'overflowX': 'auto'},
+        #                               columns=[{'name': i, 'id': i} for i in df_orders.columns])
+        return 'Placeholder text'
     return no_update
 
 
