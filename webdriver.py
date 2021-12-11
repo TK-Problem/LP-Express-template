@@ -21,7 +21,14 @@ async def wait_till_appears(page, xpath, seconds=10):
         time.sleep(1)
 
 
-async def login(page, usr, psw):
+async def login_to_lpe(page, usr, psw):
+    """
+
+    :param page:
+    :param usr:
+    :param psw:
+    :return:
+    """
     # go to page
     await page.goto("https://lpexpress.lt/home")
     # artificially slow down
@@ -56,7 +63,7 @@ async def login(page, usr, psw):
     return page, str(response)
 
 
-async def upload_data(page):
+async def upload_demo_parcel(page):
     """
     Step 1
     """

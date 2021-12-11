@@ -7,7 +7,7 @@ import base64
 import io
 from layouts import *
 # functions for webdriver (uploading data to LPE)
-from webdriver import create_browser, login, upload_data
+from webdriver import create_browser, login_to_lpe, upload_demo_parcel
 import asyncio
 
 app = Dash(__name__,
@@ -22,7 +22,8 @@ loop = asyncio.get_event_loop()
 browser, page = loop.run_until_complete(create_browser())
 # create empty pandas DataFrame for storing Etsy sales orders
 df_orders = pd.DataFrame()
-
+# create empty pandas DataFrame for storing LPE parcel information
+# df_parcels = pd.DataFrame()
 
 app.layout = html.Div(
     [
@@ -58,14 +59,23 @@ def parse_contents(contents, filename):
             df_orders = df_orders[['Item Name', 'Quantity', 'Price', 'Order Shipping', 'Date Shipped',
                                    'Ship Name', 'Ship Address1', 'Ship Address2', 'Ship City', 'Ship State',
                                    'Ship Zipcode', 'Ship Country', 'Variations']]
-            # take only unsent data
+
+            # count all rows
+            before = len(df_orders)
+            # take only un-shiped data
             df_orders = df_orders.loc[df_orders['Date Shipped'].isna()].reset_index(drop=True)
+            # count unshiped orders
+            after = len(df_orders)
+            # generate message for app user
+            msg = f"{filename} sėkmingai įkeltas. "
+            msg += f"Rasta {before} užsakymai, iš kurių {after} dar neįvykdyti (neišsiųsti)."
+        else:
+            msg = f'{filename} failo tipas yra ne .csv.'
 
     except Exception as e:
-        print(e)
-        return 'There was an error processing this file.'
-
-    return f'{filename} successfully loaded.'
+        return f'There was an error processing this {filename} file. Error message: {e}'
+    else:
+        return msg
 
 
 @app.callback([Output('output-data-upload', 'children'),
@@ -92,6 +102,7 @@ def update_output(list_of_contents, list_of_names):
      Output('login-btn', 'color'),
      Output('login-btn', 'disabled'),
      Output('upload-btn', 'children'),
+     Output('upload-btn', 'color'),
      Output('upload-btn', 'disabled')],
     [Input('input-usr', 'value'),
      Input('input-psw', 'value'),
@@ -106,19 +117,18 @@ def buttons_callback(usr, psw, n_login, cond, n_upload):
 
     # login to LP-Express
     if n_login and cond:
-        page, x = loop.run_until_complete(login(page, usr, psw))
+        page, x = loop.run_until_complete(login_to_lpe(page, usr, psw))
         # check if login was successful
         if 'Pridėti siuntą' in x:
-            return 'Sėkmingai prisijungta prie svetainės.', 'Prisijungta', "success", True, no_update, False
+            return 'Sėkmingai prisijungta prie svetainės.', 'Prisijungta', "success", True, no_update, no_update, False
         else:
             msg = 'Nepavyko, perkraukite svetainę.\n' + x
-            return msg, 'Nepavyko', "danger", True, no_update, True
+            return msg, 'Nepavyko', "danger", True, no_update, no_update, True
 
     # upload data to LP-Express
     if n_upload:
-        loop.run_until_complete(upload_data(page))
-        # loop.run_until_complete(close_browser(browser))
-        return 'Duomenys sėkmingai įkelti.', no_update, no_update, no_update, "Įkelta", True
+        loop.run_until_complete(upload_demo_parcel(page))
+        return 'Demo siuntinys sėkmingai įkeltas.', no_update, no_update, no_update, "Įkelta", "success", True
 
     return no_update
 

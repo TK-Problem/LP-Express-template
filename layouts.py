@@ -79,9 +79,9 @@ TABS- data manupulation
 tab1_content = dbc.Card(
     dbc.CardBody(
         [
-            html.Div(id='output-data-upload'),
-            html.H4("Lentelė #1", className="card-title"),
             html.Div(id='orders-table'),
+            html.Hr(),
+            html.P(id='output-data-upload'),
         ]
     ),
     className="mt-3",
@@ -102,10 +102,10 @@ tabs_layout = dbc.Collapse(
         [
             dcc.Tabs(id="tabs",
                      value='tab-1',
-                     children=[dcc.Tab(label='Originalūs duomenys',
+                     children=[dcc.Tab(label='Etsy užsakymai',
                                        children=[tab1_content],
                                        value='tab-1'),
-                               dcc.Tab(label='Apdoroti duomenys',
+                               dcc.Tab(label='LP siuntiniai',
                                        children=[tab2_content],
                                        value='tab-2'),
                                ]
@@ -124,7 +124,7 @@ buttons = html.Div(
     [
         dbc.Button("Prisijungti", id="login-btn", n_clicks=0,
                    disabled=False, color="primary", className="me-1"),
-        dbc.Button("Įkelti duomenis", id="upload-btn", color="primary", disabled=True, className="me-1"),
+        dbc.Button("Demo siuntinys", id="upload-btn", color="primary", disabled=True, className="me-1"),
     ]
 )
 
