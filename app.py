@@ -91,7 +91,7 @@ def upload_csv(list_of_contents, list_of_names):
         # calculate table properties (order weights and volumes)
         df_orders = calculate_order_props(df_orders)
         # generate Dash table
-        dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=50,
+        dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=30,
                                       style_table={'overflowX': 'auto'},
                                       columns=[{'name': i, 'id': i} for i in df_orders.columns])
 
@@ -108,8 +108,43 @@ def buttons_callback(n_clicks):
     if n_clicks:
         df_parcels = find_parcels(df_orders)
         # generate Dash table
-        dtable = dash_table.DataTable(data=df_parcels.to_dict('records'), page_size=50,
+        dtable = dash_table.DataTable(data=df_parcels.to_dict('records'), page_size=30,
+                                      style_cell_conditional=[
+                                          {
+                                              'if': {'column_id': c},
+                                              'textAlign': 'left'
+                                          } for c in ['Date', 'Region']
+                                      ],
+                                      style_data={
+                                          'color': 'black',
+                                          'backgroundColor': 'white'
+                                      },
+                                      style_data_conditional=[
+                                          {
+                                              'if': {'row_index': 'odd'},
+                                              'backgroundColor': 'rgb(220, 220, 220)',
+                                          },
+                                          {
+                                              'if': {'filter_query': '{Siuntinio vertė} > 30',
+                                                     'column_id': 'Siuntinio vertė'},
+                                              'backgroundColor': 'tomato',
+                                              'color': 'white'
+                                          },
+                                          {
+                                              'if': {'filter_query': '{Prioritetas} = 1',
+                                                     'column_id': 'Prioritetas'},
+                                              'backgroundColor': 'dodgerblue',
+                                              'color': 'white'
+                                          },
+                                      ],
+                                      style_header={
+                                          'backgroundColor': 'rgb(210, 210, 210)',
+                                          'color': 'black',
+                                          'fontWeight': 'bold'
+                                      },
                                       style_table={'overflowX': 'auto'},
+                                      editable=True,
+                                      row_deletable=True,
                                       columns=[{'name': i, 'id': i} for i in df_parcels.columns])
         return dtable
     return no_update

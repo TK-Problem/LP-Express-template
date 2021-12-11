@@ -93,9 +93,7 @@ tab2_content = dbc.Card(
     dbc.CardBody(
         [
             html.Div(id='parcels-table'),
-            html.Hr(),
-            html.P("Laikinas tekstas (PLACEHOLDER)", className="card-text"),
-            html.Br()
+            html.Hr()
         ]
     ),
     className="mt-3",

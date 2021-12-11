@@ -87,7 +87,9 @@ def find_parcels(df):
                                             'Item Volume': 'Siuntinio tūris'})
 
     # rearrange column order
-    df_parcels = df_parcels[['Pardavimo data', 'Siuntinio vertė', 'Siuntinio tipas', 'Prioritetas',
+    df_parcels = df_parcels[['Pardavimo data', 'Siuntinio vertė',
+                             'Siuntinio tipas', 'Siuntinio svoris', 'Siuntinio tūris',
+                             'Prioritetas',
                              'Gavėjas', 'Šalis', 'Miestas', 'Adreso eilutė 1', 'Adreso eilutė 2',
                              'Pašto kodas', 'Pristatymo pastabos']]
 
