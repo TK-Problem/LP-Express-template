@@ -1,16 +1,12 @@
 # packages for dash app
-from dash import Dash, html, dcc, no_update, dash_table
+from dash import Dash, no_update, dash_table
 from dash.dependencies import Input, Output, State
 import pandas as pd
-import dash_bootstrap_components as dbc
-# for uploading data
+# packages for uploading data to dash app
 import base64
-import datetime
 import io
-from urllib.parse import quote as urlquote
-# import layouts
 from layouts import *
-# packages for webdriver
+# functions for webdriver (uploading data to LPE)
 from webdriver import create_browser, login, upload_data
 import asyncio
 
@@ -27,102 +23,6 @@ browser, page = loop.run_until_complete(create_browser())
 # create empty pandas DataFrame for storing Etsy sales orders
 df_orders = pd.DataFrame()
 
-tab1_content = dbc.Card(
-    dbc.CardBody(
-        [
-            html.Div(id='output-data-upload'),
-            html.H4("Lentelė #1", className="card-title"),
-            html.Div(id='orders-table'),
-        ]
-    ),
-    className="mt-3",
-)
-
-tab2_content = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Antraštė (modifikuoti duomenys)", className="card-title"),
-            html.P("Laikinas tekstas (PLACEHOLDER)", className="card-text")
-        ]
-    ),
-    className="mt-3",
-)
-
-data_input = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("Duomenų įkėlimas", className="card-title"),
-            dcc.Upload(
-                id='upload-data',
-                children=html.Div([
-                    'Drag and Drop or ',
-                    html.A('Select Files')
-                ]),
-                style={
-                    'width': '100%',
-                    'height': '60px',
-                    'lineHeight': '60px',
-                    'borderWidth': '1px',
-                    'borderStyle': 'dashed',
-                    'borderRadius': '5px',
-                    'textAlign': 'center',
-                    'margin': '10px'
-                },
-                # Allow multiple files to be uploaded
-                multiple=True
-            ),
-        ],
-    ),
-    className="mt-3"
-)
-
-tabs_layout = dbc.Collapse(
-    html.Div(
-        [
-            dcc.Tabs(id="tabs",
-                     value='tab-1',
-                     children=[dcc.Tab(label='Originalūs duomenys',
-                                       children=[tab1_content],
-                                       value='tab-1'),
-                               dcc.Tab(label='Apdoroti duomenys',
-                                       children=[tab2_content],
-                                       value='tab-2'),
-                               ]
-                     ),
-            html.Br(),
-        ]
-    ), id="tabs-collapse", is_open=False)
-
-buttons = html.Div(
-    [
-        dbc.Button("Prisijungti", id="login-btn", n_clicks=0,
-                   disabled=False, color="primary", className="me-1"),
-        dbc.Button("Įkelti duomenis", id="upload-btn", color="primary", disabled=True, className="me-1"),
-    ]
-)
-
-email_input = dbc.Card(
-    dbc.CardBody(
-        [
-            html.H4("LP-Express prisijungimas", className="card-title"),
-            dbc.FormFloating(
-                [
-                    dbc.Input(type="text", id='input-usr', placeholder="email"),
-                    dbc.Label("El. paštas"),
-                ]
-            ),
-            dbc.FormFloating(
-                [
-                    dbc.Input(type="text", id='input-psw', placeholder="password"),
-                    dbc.Label("Slaptažodis"),
-                ]
-            ),
-            dbc.FormText(children="Įvedus duomenis paspauskite TAB klavišą.", id='form-msg'),
-            buttons,
-        ],
-    ),
-    className="mt-3"
-)
 
 app.layout = html.Div(
     [
