@@ -10,7 +10,7 @@ from webdriver import create_browser, login_to_lpe, upload_demo_parcel
 import asyncio
 # packages and functions for data manipulation
 import pandas as pd
-from utils import calculate_order_props
+from utils import calculate_order_props, find_parcels
 
 app = Dash(__name__,
            meta_tags=[{"name": "viewport", "content": "width=device-width"}],
@@ -104,13 +104,14 @@ def upload_csv(list_of_contents, list_of_names):
     Input('calculate-btn', 'n_clicks'),
 )
 def buttons_callback(n_clicks):
-    global df_orders
+    global df_orders, df_parcels
     if n_clicks:
+        df_parcels = find_parcels(df_orders)
         # generate Dash table
-        # dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=50,
-        #                               style_table={'overflowX': 'auto'},
-        #                               columns=[{'name': i, 'id': i} for i in df_orders.columns])
-        return 'Placeholder text'
+        dtable = dash_table.DataTable(data=df_parcels.to_dict('records'), page_size=50,
+                                      style_table={'overflowX': 'auto'},
+                                      columns=[{'name': i, 'id': i} for i in df_parcels.columns])
+        return dtable
     return no_update
 
 
