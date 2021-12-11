@@ -88,8 +88,15 @@ def upload_csv(list_of_contents, list_of_names):
     global df_orders
     if list_of_contents is not None:
         msg = [parse_contents(c, n) for c, n in zip(list_of_contents, list_of_names)]
-        # calculate table properties (order weights and volumes)
-        df_orders = calculate_order_props(df_orders)
+
+        # calculate properties only if file was correctly uploaded
+        if msg[:5] != 'There':
+            # calculate table properties (order weights and volumes)
+            df_orders = calculate_order_props(df_orders)
+            # calculate how many orders have unknown weight
+            msg += f" {df_orders['Item Weight'].isna().sum()} užsakymai turi nežinomą svorį."
+            msg += f" {df_orders['Item Volume'].isna().sum()} užsakymai turi nežinomą tūrį."
+
         # generate Dash table
         dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=30,
                                       style_table={'overflowX': 'auto'},
