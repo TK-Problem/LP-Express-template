@@ -71,7 +71,7 @@ def find_parcels(df):
 
     # add dummy column for parcels type
     df_parcels['Siuntinio tipas'] = ''
-    df_parcels['Prioritetas'] = 0
+    df_parcels['Pirmenybinis'] = 0
     df_parcels['Pristatymo pastabos'] = ''
 
     # rename columns
@@ -89,7 +89,7 @@ def find_parcels(df):
     # rearrange column order
     df_parcels = df_parcels[['Pardavimo data', 'Siuntinio vertė',
                              'Siuntinio tipas', 'Siuntinio svoris', 'Siuntinio tūris',
-                             'Prioritetas',
+                             'Pirmenybinis',
                              'Gavėjas', 'Šalis', 'Miestas', 'Adreso eilutė 1', 'Adreso eilutė 2',
                              'Pašto kodas', 'Pristatymo pastabos']]
 

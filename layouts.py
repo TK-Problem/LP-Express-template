@@ -49,7 +49,9 @@ data_input = dbc.Card(
                 id='upload-data',
                 children=html.Div([
                     'Drag and Drop or ',
-                    html.A('Select Files')
+                    html.A('Select Files',
+                           title='Paspaudus leis įkelti failą iš kompiuterio',
+                           style={"color": "blue"})
                 ]),
                 style={
                     'width': '100%',
@@ -136,13 +138,13 @@ email_input = dbc.Card(
             html.H4("LP-Express prisijungimas", className="card-title"),
             dbc.FormFloating(
                 [
-                    dbc.Input(type="text", id='input-usr', placeholder="email"),
+                    dbc.Input(type="email", id='input-usr', placeholder="email"),
                     dbc.Label("El. paštas"),
                 ]
             ),
             dbc.FormFloating(
                 [
-                    dbc.Input(type="text", id='input-psw', placeholder="password"),
+                    dbc.Input(type="password", id='input-psw', placeholder="password"),
                     dbc.Label("Slaptažodis"),
                 ]
             ),

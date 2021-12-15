@@ -91,11 +91,12 @@ def upload_csv(list_of_contents, list_of_names):
 
         # calculate properties only if file was correctly uploaded
         if msg[:5] != 'There':
+            msg = [html.Div(msg)]
             # calculate table properties (order weights and volumes)
             df_orders = calculate_order_props(df_orders)
             # calculate how many orders have unknown weight
-            msg += f" {df_orders['Item Weight'].isna().sum()} užsakymai turi nežinomą svorį."
-            msg += f" {df_orders['Item Volume'].isna().sum()} užsakymai turi nežinomą tūrį."
+            msg.append(html.Div(f"{df_orders['Item Weight'].isna().sum()} užsakymai turi nežinomą svorį."))
+            msg.append(html.Div(f"{df_orders['Item Volume'].isna().sum()} užsakymai turi nežinomą tūrį."))
 
         # generate Dash table
         dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=30,
