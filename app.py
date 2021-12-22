@@ -57,16 +57,24 @@ def parse_contents(contents, filename):
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
             df_orders = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+
             # count all rows
             before = len(df_orders)
+
             # take only unshiped orders
             df_orders = df_orders.loc[df_orders['Date Shipped'].isna()].reset_index(drop=True)
+
             # Choose only specific columns
             df_orders = df_orders[['Sale Date', 'Item Name', 'Variations', 'Quantity', 'Price', 'Order Shipping',
                                    'Ship Name', 'Ship Address1', 'Ship Address2', 'Ship City', 'Ship State',
                                    'Ship Zipcode', 'Ship Country']]
-            # count unshiped orders
+
+            # fill missing variations with string
+            df_orders.Variations = df_orders.Variations.fillna('Nothing')
+
+            # count not shipped orders
             after = len(df_orders)
+
             # generate message for app user
             msg = f"{filename} sėkmingai įkeltas. "
             msg += f"Rasta {before} užsakymai, iš kurių {after} dar neįvykdyti (neišsiųsti)."
@@ -101,6 +109,14 @@ def upload_csv(list_of_contents, list_of_names):
         # generate Dash table
         dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=30,
                                       style_table={'overflowX': 'auto'},
+                                      style_data_conditional=[
+                                          {
+                                              'if': {'filter_query': '{Item Volume} is blank',
+                                                     'column_id': 'Item Name'},
+                                              'backgroundColor': 'tomato',
+                                              'color': 'white'
+                                          },
+                                      ],
                                       columns=[{'name': i, 'id': i} for i in df_orders.columns])
 
         return msg, dtable, True
@@ -133,7 +149,7 @@ def buttons_callback(n_clicks):
                                               'backgroundColor': 'rgb(220, 220, 220)',
                                           },
                                           {
-                                              'if': {'filter_query': '{Siuntinio vertė} > 30',
+                                              'if': {'filter_query': '{Siuntinio vertė} > 50',
                                                      'column_id': 'Siuntinio vertė'},
                                               'backgroundColor': 'tomato',
                                               'color': 'white'

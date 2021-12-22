@@ -23,8 +23,8 @@ async def wait_till_appears(page, xpath, seconds=10):
 
 async def login_to_lpe(page, usr, psw):
     """
-
-    :param page:
+    This function logins to LP-express website.
+    :param page: pyputter page object
     :param usr:
     :param psw:
     :return:
