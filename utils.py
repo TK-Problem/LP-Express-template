@@ -26,7 +26,7 @@ def calculate_order_props(df):
 
 def find_parcels(df):
     """
-
+    This function aggregates orders into parcels.
     :param df: pandas DataFrame, Etsy order list
     :return:
     """
@@ -57,6 +57,19 @@ def find_parcels(df):
     df_parcels['Pirmenybinis'] = 0
     df_parcels['Pristatymo pastabos'] = ''
 
+    country_dict = {'France': 'Prancūzija', 'United States': 'Jungtinės Amerikos Valstijos',
+                    'Australia': 'Australija', 'KR': 'Pietų Korėja',
+                    'United Kingdom': 'Didžioji Britanija', 'Germany': 'Vokietija', 'SE': 'Švedija', 'RU': 'Rusija',
+                    'NL': 'Olandija (Nyderlandai)', 'Austria': 'Austrija', 'HR': 'Kroatija', 'BE': 'Belgija',
+                    'Canada': 'Kanada', 'PL': 'Lenkija', 'DK': 'Danija', 'IL': 'Izraelis', 'PT': 'Portugalija',
+                    'GR': 'Graikija', 'IS': 'Islandija', 'FI': 'Suomija', 'SK': 'Slovakija', 'RO': 'Rumunija',
+                    'SI': 'Slovėnija', 'Norway': 'Norvegija', 'JP': 'Japonija', 'ES': 'Ispanija', 'HU': 'Vengrija',
+                    'CH': 'Šveicarija', 'LT': 'Lietuva', 'Italy': 'Italija', 'SG': 'Singapūras', 'TW': 'Taivanas',
+                    'IE': 'Airija', 'NZ': 'Naujoji Zelandija', 'EE': 'Estija', 'ID': 'Indonezija', 'HK': 'Honkongas',
+                    'CZ': 'Čekija', 'RS': 'Serbija', 'BG': 'Bulgarija', 'TH': 'Tailandas', 'MY': 'Malaizija',
+                    'LU': 'Liukuksemburgas'
+                    }
+
     # rename columns
     df_parcels = df_parcels.rename(columns={'Ship Name': 'Gavėjas',
                                             'Ship Country': 'Šalis',
@@ -68,6 +81,15 @@ def find_parcels(df):
                                             'Price': 'Siuntinio vertė',
                                             'Item Weight': 'Siuntinio svoris',
                                             'Item Volume': 'Siuntinio tūris'})
+
+    # rename countries
+    df_parcels['Šalis'] = df_parcels['Šalis'].replace(country_dict)
+
+    # assign package type
+    cond_1 = df_parcels['Siuntinio svoris'] <= 500
+    cond_2 = df_parcels['Siuntinio tūris'] < 60
+    df_parcels.loc[cond_1 & cond_2, 'Siuntinio tipas'] = 'S'
+    df_parcels.loc[~(cond_1 & cond_2), 'Siuntinio tipas'] = 'M'
 
     # rearrange column order
     df_parcels = df_parcels[['Pardavimo data', 'Siuntinio vertė',

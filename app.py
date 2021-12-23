@@ -1,12 +1,12 @@
 # packages for dash app
-from dash import Dash, no_update, dash_table
+from dash import Dash, no_update
 from dash.dependencies import Input, Output, State
 # packages for uploading data to dash app
 import base64
 import io
 from layouts import *
 # functions for webdriver (uploading data to LPE)
-from webdriver import create_browser, login_to_lpe, upload_demo_parcel
+from webdriver import create_browser, login_to_lpe, upload_parcel
 import asyncio
 # packages and functions for data manipulation
 import pandas as pd
@@ -19,13 +19,13 @@ app = Dash(__name__,
 server = app.server
 
 # create asyncio loop for running pyppeteer browser
-loop = asyncio.get_event_loop()
+LOOP = asyncio.get_event_loop()
 # create browser
-browser, page = loop.run_until_complete(create_browser())
+BROWSER, PAGE = LOOP.run_until_complete(create_browser())
 # create empty pandas DataFrame for storing Etsy sales orders
-df_orders = pd.DataFrame()
+DF_ORDERS = pd.DataFrame()
 # create empty pandas DataFrame for storing LPE parcel information
-df_parcels = pd.DataFrame()
+DF_PARCELS = pd.DataFrame()
 
 app.layout = html.Div(
     [
@@ -50,30 +50,30 @@ app.layout = html.Div(
 
 
 def parse_contents(contents, filename):
-    global df_orders
+    global DF_ORDERS
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     try:
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
-            df_orders = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+            DF_ORDERS = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
 
             # count all rows
-            before = len(df_orders)
+            before = len(DF_ORDERS)
 
             # take only unshiped orders
-            df_orders = df_orders.loc[df_orders['Date Shipped'].isna()].reset_index(drop=True)
+            DF_ORDERS = DF_ORDERS.loc[DF_ORDERS['Date Shipped'].isna()].reset_index(drop=True)
 
             # Choose only specific columns
-            df_orders = df_orders[['Sale Date', 'Item Name', 'Variations', 'Quantity', 'Price', 'Order Shipping',
+            DF_ORDERS = DF_ORDERS[['Sale Date', 'Item Name', 'Variations', 'Quantity', 'Price', 'Order Shipping',
                                    'Ship Name', 'Ship Address1', 'Ship Address2', 'Ship City', 'Ship State',
                                    'Ship Zipcode', 'Ship Country']]
 
             # fill missing variations with string
-            df_orders.Variations = df_orders.Variations.fillna('Nothing')
+            DF_ORDERS.Variations = DF_ORDERS.Variations.fillna('Nothing')
 
             # count not shipped orders
-            after = len(df_orders)
+            after = len(DF_ORDERS)
 
             # generate message for app user
             msg = f"{filename} sėkmingai įkeltas. "
@@ -93,7 +93,7 @@ def parse_contents(contents, filename):
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'))
 def upload_csv(list_of_contents, list_of_names):
-    global df_orders
+    global DF_ORDERS
     if list_of_contents is not None:
         msg = [parse_contents(c, n) for c, n in zip(list_of_contents, list_of_names)]
 
@@ -101,13 +101,13 @@ def upload_csv(list_of_contents, list_of_names):
         if msg[:5] != 'There':
             msg = [html.Div(msg)]
             # calculate table properties (order weights and volumes)
-            df_orders = calculate_order_props(df_orders)
+            DF_ORDERS = calculate_order_props(DF_ORDERS)
             # calculate how many orders have unknown weight
-            msg.append(html.Div(f"{df_orders['Item Weight'].isna().sum()} užsakymai turi nežinomą svorį."))
-            msg.append(html.Div(f"{df_orders['Item Volume'].isna().sum()} užsakymai turi nežinomą tūrį."))
+            msg.append(html.Div(f"{DF_ORDERS['Item Weight'].isna().sum()} užsakymai turi nežinomą svorį."))
+            msg.append(html.Div(f"{DF_ORDERS['Item Volume'].isna().sum()} užsakymai turi nežinomą tūrį."))
 
         # generate Dash table
-        dtable = dash_table.DataTable(data=df_orders.to_dict('records'), page_size=30,
+        dtable = dash_table.DataTable(data=DF_ORDERS.to_dict('records'), page_size=30,
                                       style_table={'overflowX': 'auto'},
                                       style_data_conditional=[
                                           {
@@ -116,61 +116,40 @@ def upload_csv(list_of_contents, list_of_names):
                                               'backgroundColor': 'tomato',
                                               'color': 'white'
                                           },
+                                          {
+                                              'if': {'filter_query': '{Item Volume} is blank',
+                                                     'column_id': 'Item Volume'},
+                                              'backgroundColor': 'tomato',
+                                              'color': 'white'
+                                          },
+                                          {
+                                              'if': {'filter_query': '{Item Weight} is blank',
+                                                     'column_id': 'Item Weight'},
+                                              'backgroundColor': 'tomato',
+                                              'color': 'white'
+                                          },
                                       ],
-                                      columns=[{'name': i, 'id': i} for i in df_orders.columns])
+                                      columns=[{'name': i, 'id': i} for i in DF_ORDERS.columns])
 
         return msg, dtable, True
     return no_update
 
 
 @app.callback(
-    Output('parcels-table', 'children'),
+    [Output('parcels-table', 'data'),
+     Output('parcels-table', 'columns')],
     Input('calculate-btn', 'n_clicks'),
 )
-def buttons_callback(n_clicks):
-    global df_orders, df_parcels
+def process_parcels(n_clicks):
+    global DF_ORDERS, DF_PARCELS
     if n_clicks:
-        df_parcels = find_parcels(df_orders)
-        # generate Dash table
-        dtable = dash_table.DataTable(data=df_parcels.to_dict('records'), page_size=30,
-                                      style_cell_conditional=[
-                                          {
-                                              'if': {'column_id': c},
-                                              'textAlign': 'left'
-                                          } for c in ['Date', 'Region']
-                                      ],
-                                      style_data={
-                                          'color': 'black',
-                                          'backgroundColor': 'white'
-                                      },
-                                      style_data_conditional=[
-                                          {
-                                              'if': {'row_index': 'odd'},
-                                              'backgroundColor': 'rgb(220, 220, 220)',
-                                          },
-                                          {
-                                              'if': {'filter_query': '{Siuntinio vertė} > 50',
-                                                     'column_id': 'Siuntinio vertė'},
-                                              'backgroundColor': 'tomato',
-                                              'color': 'white'
-                                          },
-                                          {
-                                              'if': {'filter_query': '{Prioritetas} = 1',
-                                                     'column_id': 'Prioritetas'},
-                                              'backgroundColor': 'dodgerblue',
-                                              'color': 'white'
-                                          },
-                                      ],
-                                      style_header={
-                                          'backgroundColor': 'rgb(210, 210, 210)',
-                                          'color': 'black',
-                                          'fontWeight': 'bold'
-                                      },
-                                      style_table={'overflowX': 'auto'},
-                                      editable=True,
-                                      row_deletable=True,
-                                      columns=[{'name': i, 'id': i} for i in df_parcels.columns])
-        return dtable
+        DF_PARCELS = find_parcels(DF_ORDERS)
+
+        # generate data for Dash table
+        columns = [{'name': i, 'id': i} for i in DF_PARCELS.columns]
+        table_data = DF_PARCELS.to_dict('records')
+
+        return table_data, columns
     return no_update
 
 
@@ -179,34 +158,48 @@ def buttons_callback(n_clicks):
      Output('login-btn', 'children'),
      Output('login-btn', 'color'),
      Output('login-btn', 'disabled'),
-     Output('upload-btn', 'children'),
-     Output('upload-btn', 'color'),
-     Output('upload-btn', 'disabled')],
-    [Input('input-usr', 'value'),
-     Input('input-psw', 'value'),
-     Input('login-btn', 'n_clicks'),
-     Input('upload-btn', 'disabled'),
-     Input('upload-btn', 'n_clicks')],
+     Output('demo-btn', 'children'),
+     Output('demo-btn', 'color'),
+     Output('demo-btn', 'disabled'),
+     Output('upload-all-btn', 'disabled')],
+    [Input('login-btn', 'n_clicks'),
+     Input('demo-btn', 'disabled'),
+     Input('demo-btn', 'n_clicks'),
+     Input('upload-all-btn', 'n_clicks')],
+    [State('input-usr', 'value'),
+     State('input-psw', 'value'),
+     State('parcels-table', 'data')]
 )
-def buttons_callback(usr, psw, n_login, cond, n_upload):
-    global loop, page, browser
+def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
+    global LOOP, PAGE, BROWSER
+
     if usr is None or psw is None:
         return no_update
 
     # login to LP-Express
     if n_login and cond:
-        page, x = loop.run_until_complete(login_to_lpe(page, usr, psw))
+        PAGE, x = LOOP.run_until_complete(login_to_lpe(PAGE, usr, psw))
         # check if login was successful
         if 'Pridėti siuntą' in x:
-            return 'Sėkmingai prisijungta prie svetainės.', 'Prisijungta', "success", True, no_update, no_update, False
+            msg = 'Sėkmingai prisijungta prie svetainės.'
+            return msg, 'Prisijungta', "success", True, no_update, no_update, False, False
         else:
             msg = 'Nepavyko, perkraukite svetainę.\n' + x
-            return msg, 'Nepavyko', "danger", True, no_update, no_update, True
+            return msg, 'Nepavyko', "danger", True, no_update, no_update, True, True
 
     # upload data to LP-Express
+    if n_demo:
+        LOOP.run_until_complete(upload_parcel(PAGE, 'demo'))
+        return 'Demo siuntinys sėkmingai įkeltas.', no_update, no_update, no_update, "Įkelta", "success", True, no_update
+
+    # upload all data to LP-Express
     if n_upload:
-        loop.run_until_complete(upload_demo_parcel(page))
-        return 'Demo siuntinys sėkmingai įkeltas.', no_update, no_update, no_update, "Įkelta", "success", True
+        # temp. DataFrame to read current data
+        df_parcels = pd.DataFrame(table_data)
+        if len(df_parcels):
+            args = (no_update, no_update, no_update, no_update, no_update, no_update, no_update)
+            return f'{len(df_parcels)}, {df_parcels.columns}', *args
+        return f'Nėra sugeneruotų užsakymų', no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     return no_update
 

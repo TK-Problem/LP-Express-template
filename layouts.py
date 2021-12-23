@@ -1,4 +1,4 @@
-from dash import html, dcc
+from dash import html, dcc, dash_table
 import dash_bootstrap_components as dbc
 
 
@@ -85,7 +85,7 @@ tab1_content = dbc.Card(
             html.Hr(),
             html.P(id='output-data-upload', className="card-text"),
             html.Br(),
-            dbc.Button("Skaičiuoti", id="calculate-btn", n_clicks=0, color="primary", className="me-1"),
+            dbc.Button("Skaičiuoti užsakymus", id="calculate-btn", n_clicks=0, color="primary", className="me-1"),
         ]
     ),
     className="mt-3",
@@ -94,7 +94,48 @@ tab1_content = dbc.Card(
 tab2_content = dbc.Card(
     dbc.CardBody(
         [
-            html.Div(id='parcels-table'),
+            html.Div(
+                [
+                    dash_table.DataTable(data=[], page_size=30,
+                                         style_cell_conditional=[
+                                             {
+                                                 'if': {'column_id': c},
+                                                 'textAlign': 'left'
+                                                 } for c in ['Date', 'Region']
+                                             ],
+                                         style_data={
+                                             'color': 'black',
+                                             'backgroundColor': 'white'
+                                             },
+                                         style_data_conditional=[
+                                             {
+                                                 'if': {'row_index': 'odd'},
+                                                 'backgroundColor': 'rgb(220, 220, 220)',
+                                                },
+                                             {
+                                                 'if': {'filter_query': '{Siuntinio vertė} > 50',
+                                                        'column_id': 'Siuntinio vertė'},
+                                                 'backgroundColor': 'tomato',
+                                                 'color': 'white'
+                                                 },
+                                             {
+                                                 'if': {'filter_query': '{Prioritetas} = 1',
+                                                        'column_id': 'Prioritetas'},
+                                                 'backgroundColor': 'dodgerblue',
+                                                 'color': 'white'
+                                                },
+                                             ],
+                                         style_header={
+                                             'backgroundColor': 'rgb(210, 210, 210)',
+                                             'color': 'black',
+                                             'fontWeight': 'bold'
+                                             },
+                                         style_table={'overflowX': 'auto'},
+                                         editable=True,
+                                         row_deletable=True,
+                                         columns=[],
+                                         id='parcels-table')
+                    ]),
             html.Hr()
         ]
     ),
@@ -126,9 +167,9 @@ UPLOAD DATA- imports data to LPE
 
 buttons = html.Div(
     [
-        dbc.Button("Prisijungti", id="login-btn", n_clicks=0,
-                   disabled=False, color="primary", className="me-1"),
-        dbc.Button("Demo siuntinys", id="upload-btn", color="primary", disabled=True, className="me-1"),
+        dbc.Button("Prisijungti", id="login-btn", n_clicks=0, disabled=False, color="primary", className="me-1"),
+        dbc.Button("Demo siuntinys", id="demo-btn", color="primary", disabled=True, className="me-1"),
+        dbc.Button("Siųsti siuntinius", id="upload-all-btn", color="primary", disabled=True, className="me-1"),
     ]
 )
 
