@@ -200,7 +200,7 @@ def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
         if len(df_parcels):
             PAGE, _ = LOOP.run_until_complete(upload_all_parcel(PAGE, df_parcels))
             args = (no_update, no_update, no_update, no_update, no_update, no_update, no_update)
-            return f'{len(df_parcels)}, {df_parcels.columns}', *args
+            return f'Sėkmingai įkelta {len(df_parcels)} užsakymų', *args
         return f'Nėra sugeneruotų užsakymų', no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     return no_update

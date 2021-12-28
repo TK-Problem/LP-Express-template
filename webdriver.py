@@ -89,7 +89,7 @@ async def upload_parcel(page, row):
     # click add parcel
     await page.click("a[role='button']", {'delay': 100})
     time.sleep(0.1)
-    await page.screenshot({'path': f'step_1.png'})
+    # await page.screenshot({'path': f'step_1.png'})
     print('1/5')
 
     """
@@ -126,7 +126,7 @@ async def upload_parcel(page, row):
     _ = "//a[@class='btn btn-default btn-tooltip btn-sm text-uppercase ld-ext-right btn-ico-right']"
     await wait_till_appears(page, _)
 
-    await page.screenshot({'path': f'step_2.png'})
+    # await page.screenshot({'path': f'step_2.png'})
     print('2/5')
     time.sleep(1)
     # click NEXT button
@@ -169,7 +169,7 @@ async def upload_parcel(page, row):
     _ = "//a[@class='btn btn-default btn-sm text-uppercase ld-ext-right btn-ico-right']"
     await wait_till_appears(page, _)
 
-    await page.screenshot({'path': f'step_3.png'})
+    # await page.screenshot({'path': f'step_3.png'})
     print('3/5')
     time.sleep(1)
     # click NEXT button
@@ -216,19 +216,20 @@ async def upload_parcel(page, row):
     # wait till add parcel button appears
     await wait_till_appears(page, "//a[contains(text(), 'Pridėti siuntą')]")
 
-    await page.screenshot({'path': f'step_4.png'})
-    print('4/5')
+    await page.keyboard.press('Home')
     time.sleep(1)
+    # await page.screenshot({'path': f'step_4.png'})
+    print('4/5')
+
     """
     Step 5 check whatever new form is available
     """
-    await page.keyboard.press('Home')
     time.sleep(1)
     await wait_till_appears(page, "//span[contains(text(), 'Pildyti')]", seconds=3)
 
     e = await page.xpath("//span[contains(text(), 'Pildyti')]")
     if e:
-        await e[0].click()
+        await e[0].click({'delay': 100})
 
         """
         Step 6
@@ -257,7 +258,7 @@ async def upload_parcel(page, row):
         # wait till button to continue appears
         await wait_till_appears(page, "//button[contains(text(), 'Saugoti')]")
         time.sleep(0.1)
-        await page.screenshot({'path': f'step_51.png'})
+        # await page.screenshot({'path': f'step_51.png'})
         print('5.1/5')
 
         # click NEXT button
@@ -267,7 +268,7 @@ async def upload_parcel(page, row):
         await wait_till_appears(page, "//span[contains(text(), 'Pildyti')]", seconds=3)
         time.sleep(1)
 
-    await page.screenshot({'path': f'step_5.png'})
+    # await page.screenshot({'path': f'step_5.png'})
     time.sleep(0.1)
     print('5/5')
 
@@ -292,7 +293,7 @@ async def upload_all_parcel(page, df):
         await page.reload()
         time.sleep(2)
         # current page
-        await page.screenshot({'path': f'step_6.png'})
+        # await page.screenshot({'path': f'step_6.png'})
 
     response = await page.content()
 
