@@ -71,7 +71,7 @@ async def upload_parcel(page, row):
     :param row: pandas Series
     :return: None
     """
-    if row == 'demo':
+    if isinstance(row, str):
         _index = ['Pardavimo data', 'Siuntinio vertė', 'Siuntinio tipas',
                   'Siuntinio svoris', 'Siuntinio tūris', 'Pirmenybinis',
                   'Gavėjas', 'Šalis', 'Miestas', 'Adreso eilutė 1', 'Adreso eilutė 2',
@@ -88,6 +88,9 @@ async def upload_parcel(page, row):
     await wait_till_appears(page, "//a[contains(text(), 'Pridėti siuntą')]")
     # click add parcel
     await page.click("a[role='button']", {'delay': 100})
+    time.sleep(0.1)
+    await page.screenshot({'path': f'step_1.png'})
+    print('1/5')
 
     """
     Step 2
@@ -100,10 +103,11 @@ async def upload_parcel(page, row):
     # click mail button
     _ = "ul.list-checkbox:nth-child(3) > li:nth-child(3) > label:nth-child(1) > span:nth-child(3)"
     await page.click(_, {'delay': 100})
+    time.sleep(0.1)
     # click address
     _ = "ul.list-checkbox:nth-child(5) > li:nth-child(1) > label:nth-child(1) > span:nth-child(3)"
     await page.click(_, {'delay': 100})
-
+    time.sleep(0.1)
     # click small package
     if row['Siuntinio tipas'] == 'S':
         _ = "ul.list-checkbox:nth-child(7) > li:nth-child(1)"
@@ -117,11 +121,14 @@ async def upload_parcel(page, row):
     # add weight
     await wait_till_appears(page, "//input[@id='weight']")
     await page.type("input[id='weight']", str(int(row['Siuntinio svoris'])/1000))
-
+    time.sleep(0.1)
     # wait till button loads
     _ = "//a[@class='btn btn-default btn-tooltip btn-sm text-uppercase ld-ext-right btn-ico-right']"
     await wait_till_appears(page, _)
 
+    await page.screenshot({'path': f'step_2.png'})
+    print('2/5')
+    time.sleep(1)
     # click NEXT button
     await page.click("a.btn-default:nth-child(1)", {'delay': 100})
 
@@ -133,10 +140,10 @@ async def upload_parcel(page, row):
 
     # type recipient's name
     await page.type("input[formcontrolname = 'recipient']", row['Gavėjas'])
-
+    time.sleep(0.1)
     # click on placeholder
     await page.click("input[placeholder = 'Šalis']", {'delay': 100})
-
+    time.sleep(0.1)
     # enter country name
     await page.type("input[placeholder = 'Šalis']", row['Šalis'])
     time.sleep(1)
@@ -144,21 +151,27 @@ async def upload_parcel(page, row):
 
     # type recipient's city
     await page.type("input[placeholder = 'Įrašykite vietovę']", row['Miestas'])
-
+    time.sleep(0.1)
     # type recipient's Address 1
-    await page.type("input[formcontrolname = 'address1']", row['Adreso eilutė 1'])
-
+    await page.type("input[formcontrolname = 'address1']", f"{row['Adreso eilutė 1']}")
+    time.sleep(0.1)
     # type recipient's Address 2
-    await page.type("input[formcontrolname = 'address2']", row['Adreso eilutė 2'])
-
+    await page.type("input[formcontrolname = 'address2']", f"{row['Adreso eilutė 2']}")
+    time.sleep(0.1)
     # add post code
-    await page.type("input[formcontrolname = 'postalCode']", str(row['Adreso eilutė 2']))
+    await page.type("input[formcontrolname = 'postalCode']", f"{row['Pašto kodas']}")
+    time.sleep(0.1)
     # add e-mail
-    await page.type("input[formcontrolname = 'email']", row['Pristatymo pastabos'])
-
+    # await page.type("input[formcontrolname = 'email']", row['Pristatymo pastabos'])
+    await page.type("input[formcontrolname = 'email']", 'mail@mail.com')
+    time.sleep(0.1)
     # wait till button loads
     _ = "//a[@class='btn btn-default btn-sm text-uppercase ld-ext-right btn-ico-right']"
     await wait_till_appears(page, _)
+
+    await page.screenshot({'path': f'step_3.png'})
+    print('3/5')
+    time.sleep(1)
     # click NEXT button
     await page.click("a.btn-default:nth-child(1)", {'delay': 100})
 
@@ -203,9 +216,14 @@ async def upload_parcel(page, row):
     # wait till add parcel button appears
     await wait_till_appears(page, "//a[contains(text(), 'Pridėti siuntą')]")
 
+    await page.screenshot({'path': f'step_4.png'})
+    print('4/5')
+    time.sleep(1)
     """
     Step 5 check whatever new form is available
     """
+    await page.keyboard.press('Home')
+    time.sleep(1)
     await wait_till_appears(page, "//span[contains(text(), 'Pildyti')]", seconds=3)
 
     e = await page.xpath("//span[contains(text(), 'Pildyti')]")
@@ -220,28 +238,63 @@ async def upload_parcel(page, row):
 
         # click select Dovana option
         await page.select('select[formcontrolname="parcelType"]', 'GIFT')
-
+        time.sleep(0.1)
         # type "Toy" for summary
-        await page.type('input[formcontrolname = "summary"]', 'Toy')
-
+        await page.type('input[formcontrolname = "summary"]', 'Toy', {'delay': 100})
+        time.sleep(0.1)
         # type 1 for quantity
-        await page.type('input[formcontrolname = "quantity"]', '1')
-
+        await page.type('input[formcontrolname = "quantity"]', '1', {'delay': 100})
+        time.sleep(0.1)
         # type parcel's weight
-        await page.type('input[formcontrolname = "weight"]', f"{row['Siuntinio svoris']}")
-
+        await page.type('input[formcontrolname = "weight"]', f"{int(row['Siuntinio svoris'])}", {'delay': 100})
+        time.sleep(0.1)
         # type parcel's price
-        await page.type('input[formcontrolname = "amount"]', "5")
-
+        await page.type('input[formcontrolname = "amount"]', "5", {'delay': 100})
+        time.sleep(0.1)
         # parcel origin, always Lithuania
         await page.select('select[formcontrolname="countryId"]', '118')
-
+        time.sleep(0.1)
         # wait till button to continue appears
         await wait_till_appears(page, "//button[contains(text(), 'Saugoti')]")
+        time.sleep(0.1)
+        await page.screenshot({'path': f'step_51.png'})
+        print('5.1/5')
 
         # click NEXT button
         await page.click("button.btn-default", {'delay': 100})
 
         # await till 'Pildyti' button is loaded
         await wait_till_appears(page, "//span[contains(text(), 'Pildyti')]", seconds=3)
+        time.sleep(1)
+
+    await page.screenshot({'path': f'step_5.png'})
+    time.sleep(0.1)
+    print('5/5')
+
+    # get page source
+    response = await page.content()
+
+    return page, response
+
+
+async def upload_all_parcel(page, df):
+    """
+    This function iterates over all orders
+    :param page:
+    :param df:
+    :return:
+    """
+    for idx in df.index:
+        row = df.loc[idx]
+        page, _ = await upload_parcel(page, row)
+        print(df.loc[idx, 'Gavėjas'], f"{idx + 1}/{len(df)}")
+        # reload page
+        await page.reload()
+        time.sleep(2)
+        # current page
+        await page.screenshot({'path': f'step_6.png'})
+
+    response = await page.content()
+
+    return page, response
 

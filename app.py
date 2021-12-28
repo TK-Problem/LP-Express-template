@@ -6,7 +6,7 @@ import base64
 import io
 from layouts import *
 # functions for webdriver (uploading data to LPE)
-from webdriver import create_browser, login_to_lpe, upload_parcel
+from webdriver import create_browser, login_to_lpe, upload_parcel, upload_all_parcel
 import asyncio
 # packages and functions for data manipulation
 import pandas as pd
@@ -189,14 +189,16 @@ def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
 
     # upload data to LP-Express
     if n_demo:
-        LOOP.run_until_complete(upload_parcel(PAGE, 'demo'))
+        PAGE, _ = LOOP.run_until_complete(upload_parcel(PAGE, 'demo'))
         return 'Demo siuntinys sėkmingai įkeltas.', no_update, no_update, no_update, "Įkelta", "success", True, no_update
 
     # upload all data to LP-Express
     if n_upload:
         # temp. DataFrame to read current data
         df_parcels = pd.DataFrame(table_data)
+
         if len(df_parcels):
+            PAGE, _ = LOOP.run_until_complete(upload_all_parcel(PAGE, df_parcels))
             args = (no_update, no_update, no_update, no_update, no_update, no_update, no_update)
             return f'{len(df_parcels)}, {df_parcels.columns}', *args
         return f'Nėra sugeneruotų užsakymų', no_update, no_update, no_update, no_update, no_update, no_update, no_update
