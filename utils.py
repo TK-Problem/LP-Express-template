@@ -86,7 +86,7 @@ def find_parcels(df):
                     'Australia': 'Australija', 'KR': 'Pietų Korėja',
                     'United Kingdom': 'Didžioji Britanija', 'Germany': 'Vokietija', 'SE': 'Švedija', 'RU': 'Rusija',
                     'NL': 'Olandija (Nyderlandai)', 'Austria': 'Austrija', 'HR': 'Kroatija', 'BE': 'Belgija',
-                    'Canada': 'Kanada', 'PL': 'Lenkija', 'DK': 'Danija', 'IL': 'Izraelis', 'PT': 'Portugalija',
+                    'Canada': 'Kanada', 'PL': 'Lenkija', 'Denmark': 'Danija', 'IL': 'Izraelis', 'PT': 'Portugalija',
                     'GR': 'Graikija', 'IS': 'Islandija', 'FI': 'Suomija', 'SK': 'Slovakija', 'RO': 'Rumunija',
                     'SI': 'Slovėnija', 'Norway': 'Norvegija', 'JP': 'Japonija', 'ES': 'Ispanija', 'HU': 'Vengrija',
                     'CH': 'Šveicarija', 'LT': 'Lietuva', 'Italy': 'Italija', 'SG': 'Singapūras', 'TW': 'Taivanas',
@@ -109,7 +109,7 @@ def find_parcels(df):
                                             'Abbr': 'Pristatymo pastabos'})
 
     # generate email
-    df_parcels['Pristatymo pastabos'] += '@a.com'
+    df_parcels['Pristatymo pastabos'] += '_@a.com'
 
     # rename countries
     df_parcels['Šalis'] = df_parcels['Šalis'].replace(country_dict)
@@ -119,6 +119,10 @@ def find_parcels(df):
     cond_2 = df_parcels['Siuntinio tūris'] < 60
     df_parcels.loc[cond_1 & cond_2, 'Siuntinio tipas'] = 'S'
     df_parcels.loc[~(cond_1 & cond_2), 'Siuntinio tipas'] = 'M'
+
+    # pirmenybinis
+    cond_1 = df_parcels['Siuntinio vertė'] >= 70
+    df_parcels.loc[cond_1, 'Pirmenybinis'] = 1
 
     # rearrange column order
     df_parcels = df_parcels[['Pardavimo data', 'Siuntinio vertė',
