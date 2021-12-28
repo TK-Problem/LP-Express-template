@@ -21,6 +21,31 @@ def calculate_order_props(df):
     df['Item Weight'] *= df['Quantity']
     df['Item Volume'] *= df['Quantity']
 
+    # read abreviation dictonary
+    df_abbr = pd.read_csv('https://www.dropbox.com/s/aatrd2bed5d6bon/abbr_dict.csv?dl=1')
+    df_abbr_items = df_abbr[['Item Name', 'Abbr_1']].copy()
+    df_abbr_variations = df_abbr[['Variations', 'Abbr_2']].copy()
+    # add nothing label
+    df_abbr_variations = df_abbr_variations.append(pd.DataFrame([['Nothing', '']],
+                                                                columns=['Variations', 'Abbr_2']), ignore_index=True)
+    # fill nan as empty strings
+    df_abbr_variations = df_abbr_variations.dropna(subset=['Variations']).fillna('')
+    # add dash before abbreviation
+    df_abbr_variations.Abbr_2 = df_abbr_variations.Abbr_2.apply(lambda x: '-' + x if x != '' else x)
+
+    # delete unnecessary data
+    del df_abbr
+
+    # add abbreviations
+    df = pd.merge(df, df_abbr_items, on=['Item Name'], how='left')
+    df = pd.merge(df, df_abbr_variations, on=['Variations'], how='left')
+    # merge abbreviations
+    df['Abbr'] = df.Abbr_1 + df.Abbr_2
+    df.drop(['Abbr_1', 'Abbr_2'], axis=1, inplace=True)
+
+    # delete unnecessary data
+    del df_abbr_items, df_abbr_variations
+
     return df
 
 
@@ -36,13 +61,14 @@ def find_parcels(df):
     # get shipment info
     col_names = ['Sale Date', 'Ship Address2', 'Ship State', 'Ship Zipcode', 'Ship Country']
     df_ship = df.set_index(['Ship Name', 'Ship City', 'Ship Address1'])[col_names].fillna('')
+
     # keep newest data entries
     df_ship = df_ship.drop_duplicates(keep='first')
 
     # create new DataFrame for parcels
     col_names_1 = ['Ship Name', 'Ship City', 'Ship Address1']
-    col_names_2 = ['Item Weight', 'Item Volume', 'Price']
-    df_parcels = df.groupby(col_names_1)[col_names_2].sum()
+    agg_dict = {'Item Weight': 'sum', 'Item Volume': 'sum', 'Price': 'sum', 'Abbr': '_'.join}
+    df_parcels = df[~df.Abbr.isna()].groupby(col_names_1).agg(agg_dict)
 
     # add address info
     df_parcels = df_ship.join(df_parcels).reset_index()
@@ -55,7 +81,6 @@ def find_parcels(df):
     # add dummy column for parcels type
     df_parcels['Siuntinio tipas'] = ''
     df_parcels['Pirmenybinis'] = 0
-    df_parcels['Pristatymo pastabos'] = ''
 
     country_dict = {'France': 'Prancūzija', 'United States': 'Jungtinės Amerikos Valstijos',
                     'Australia': 'Australija', 'KR': 'Pietų Korėja',
@@ -80,7 +105,11 @@ def find_parcels(df):
                                             'Ship Address2': 'Adreso eilutė 2',
                                             'Price': 'Siuntinio vertė',
                                             'Item Weight': 'Siuntinio svoris',
-                                            'Item Volume': 'Siuntinio tūris'})
+                                            'Item Volume': 'Siuntinio tūris',
+                                            'Abbr': 'Pristatymo pastabos'})
+
+    # generate email
+    df_parcels['Pristatymo pastabos'] += '@a.com'
 
     # rename countries
     df_parcels['Šalis'] = df_parcels['Šalis'].replace(country_dict)

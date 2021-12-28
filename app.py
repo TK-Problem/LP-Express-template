@@ -107,7 +107,7 @@ def upload_csv(list_of_contents, list_of_names):
             msg.append(html.Div(f"{DF_ORDERS['Item Volume'].isna().sum()} užsakymai turi nežinomą tūrį."))
 
         # generate Dash table
-        dtable = dash_table.DataTable(data=DF_ORDERS.to_dict('records'), page_size=30,
+        dtable = dash_table.DataTable(data=DF_ORDERS.to_dict('records'),
                                       style_table={'overflowX': 'auto'},
                                       style_data_conditional=[
                                           {
@@ -125,6 +125,12 @@ def upload_csv(list_of_contents, list_of_names):
                                           {
                                               'if': {'filter_query': '{Item Weight} is blank',
                                                      'column_id': 'Item Weight'},
+                                              'backgroundColor': 'tomato',
+                                              'color': 'white'
+                                          },
+                                          {
+                                              'if': {'filter_query': '{Abbr} is blank',
+                                                     'column_id': 'Abbr'},
                                               'backgroundColor': 'tomato',
                                               'color': 'white'
                                           },
