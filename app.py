@@ -212,6 +212,27 @@ def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
     return no_update
 
 
+@app.callback(
+    Output("download-dataframe-csv", "data"),
+    Input('download-btn', 'n_clicks'),
+    State('parcels-table', 'data'),
+    prevent_initial_call=True,
+)
+def download_csv(n_clicks, table_data):
+    """
+    This function downloads
+    :param n_clicks: int
+    :param table_data: dict
+    :return:
+    """
+    if n_clicks:
+        # temp. DataFrame to read current data
+        df_parcels = pd.DataFrame(table_data)
+        return dcc.send_data_frame(df_parcels.to_csv, "parcels.csv")
+
+    return no_update
+
+
 # run app
 if __name__ == '__main__':
     app.run_server(debug=True)

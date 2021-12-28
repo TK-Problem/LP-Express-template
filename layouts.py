@@ -136,7 +136,10 @@ tab2_content = dbc.Card(
                                          columns=[],
                                          id='parcels-table')
                     ]),
-            html.Hr()
+            html.Hr(),
+            html.Br(),
+            dbc.Button("Atsisiųsti .csv", id="download-btn", n_clicks=0, color="primary", className="me-1"),
+            dcc.Download(id="download-dataframe-csv"),
         ]
     ),
     className="mt-3",
