@@ -1,4 +1,6 @@
 # packages for dash app
+import time
+
 from dash import Dash, no_update
 from dash.dependencies import Input, Output, State
 # packages for uploading data to dash app
@@ -6,7 +8,7 @@ import base64
 import io
 from layouts import *
 # functions for webdriver (uploading data to LPE)
-from webdriver import create_browser, login_to_lpe, upload_parcel, upload_all_parcel
+from webdriver import create_browser, login_to_lpe, upload_parcel, close_browser
 import asyncio
 # packages and functions for data manipulation
 import pandas as pd
@@ -204,7 +206,22 @@ def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
         df_parcels = pd.DataFrame(table_data)
 
         if len(df_parcels):
-            PAGE, _ = LOOP.run_until_complete(upload_all_parcel(PAGE, df_parcels))
+            for idx in df_parcels.index:
+                row = df_parcels.loc[idx]
+                PAGE, _ = LOOP.run_until_complete(upload_parcel(PAGE, row))
+                time.sleep(1)
+                if (idx + 1) % 3 == 0:
+                    # create browser
+                    BROWSER, PAGE = LOOP.run_until_complete(close_browser(BROWSER))
+                    time.sleep(1)
+                    # login
+                    PAGE, x = LOOP.run_until_complete(login_to_lpe(PAGE, usr, psw))
+                    time.sleep(1)
+                    print('Browser recreated')
+
+                print(df_parcels.loc[idx, 'Gavėjas'], f"{idx + 1}/{len(df_parcels)}")
+
+            # PAGE, _ = LOOP.run_until_complete(upload_all_parcel(PAGE, df_parcels))
             args = (no_update, no_update, no_update, no_update, no_update, no_update, no_update)
             return f'Sėkmingai įkelta {len(df_parcels)} užsakymų', *args
         return f'Nėra sugeneruotų užsakymų', no_update, no_update, no_update, no_update, no_update, no_update, no_update
