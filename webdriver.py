@@ -66,7 +66,9 @@ async def login_to_lpe(page, usr, psw):
     # click login button
     await page.click("button[type='submit']", {'delay': 100})
 
-    time.sleep(2)
+    # wait till "Pridėti siuntą" button appears
+    await page.waitForSelector("a[role='button']", timeout=30000)
+    await wait_till_appears(page, "//a[contains(text(), 'Pridėti siuntą')]")
 
     # get page source
     response = await page.content()
