@@ -51,7 +51,7 @@ data_input = dbc.Card(
                     'Drag and Drop or ',
                     html.A('Select Files',
                            title='Paspaudus leis įkelti failą iš kompiuterio',
-                           style={"color": "blue"})
+                           style={"color": "#4582ec"})
                 ]),
                 style={
                     'width': '100%',
@@ -194,6 +194,9 @@ email_input = dbc.Card(
             ),
             dbc.FormText(children="Įvedus duomenis paspauskite TAB klavišą.", id='form-msg'),
             buttons,
+            html.Br(),
+            dcc.Interval(id='interval-progress', interval=10 * 1000, n_intervals=0),
+            dbc.Progress(id="progress-bar", style={"height": "25px"}),
         ],
     ),
     className="mt-3"

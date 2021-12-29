@@ -262,7 +262,7 @@ async def upload_parcel(page, row):
     """
     if row['Šalis'] in ['Jungtinės Amerikos Valstijos', 'Didžioji Britanija', 'Norvegija']:
         await page.waitForSelector('i[class="ico v-m svg-add-document-red ico-margin"]', timeout=30000)
-        # await wait_till_appears(page, "//span[contains(text(), 'Pildyti')]", seconds=30)
+        await wait_till_appears(page, "//span[contains(text(), 'Pildyti')]", seconds=15)
 
         e = await page.xpath("//span[contains(text(), 'Pildyti')]")
         if e:

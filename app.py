@@ -28,6 +28,10 @@ BROWSER, PAGE = LOOP.run_until_complete(create_browser())
 DF_ORDERS = pd.DataFrame()
 # create empty pandas DataFrame for storing LPE parcel information
 DF_PARCELS = pd.DataFrame()
+# create empty pandas DataFrame for storing modified parcels data
+DF_PARCELS_MOD = pd.DataFrame()
+# global variable for monitoring position
+IDX = 0
 
 app.layout = html.Div(
     [
@@ -179,7 +183,7 @@ def process_parcels(n_clicks):
      State('parcels-table', 'data')]
 )
 def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
-    global LOOP, PAGE, BROWSER
+    global LOOP, PAGE, BROWSER, DF_PARCELS_MOD, IDX
 
     if usr is None or psw is None:
         return no_update
@@ -203,14 +207,17 @@ def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
     # upload all data to LP-Express
     if n_upload:
         # temp. DataFrame to read current data
-        df_parcels = pd.DataFrame(table_data)
+        DF_PARCELS_MOD = pd.DataFrame(table_data)
 
-        if len(df_parcels):
-            for idx in df_parcels.index:
-                row = df_parcels.loc[idx]
+        if len(DF_PARCELS_MOD):
+
+            for idx in DF_PARCELS_MOD.index:
+                IDX = idx
+                row = DF_PARCELS_MOD.loc[IDX]
                 PAGE, _ = LOOP.run_until_complete(upload_parcel(PAGE, row))
-                time.sleep(1)
-                if (idx + 1) % 3 == 0:
+                time.sleep(1.5)
+
+                if (IDX + 1) % 3 == 0:
                     # create browser
                     BROWSER, PAGE = LOOP.run_until_complete(close_browser(BROWSER))
                     time.sleep(1)
@@ -219,11 +226,10 @@ def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
                     time.sleep(1)
                     print('Browser recreated')
 
-                print(df_parcels.loc[idx, 'Gavėjas'], f"{idx + 1}/{len(df_parcels)}")
+                print(DF_PARCELS_MOD.loc[IDX, 'Gavėjas'], f"{IDX + 1}/{len(DF_PARCELS_MOD)}")
 
-            # PAGE, _ = LOOP.run_until_complete(upload_all_parcel(PAGE, df_parcels))
             args = (no_update, no_update, no_update, no_update, no_update, no_update, no_update)
-            return f'Sėkmingai įkelta {len(df_parcels)} užsakymų', *args
+            return f'{len(DF_PARCELS_MOD)} užsakymų sėkmingai įkelti.', *args
         return f'Nėra sugeneruotų užsakymų', no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     return no_update
@@ -247,6 +253,25 @@ def download_csv(n_clicks, table_data):
         df_parcels = pd.DataFrame(table_data)
         return dcc.send_data_frame(df_parcels.to_csv, "parcels.csv")
 
+    return no_update
+
+
+@app.callback(
+    [Output("progress-bar", "value"),
+     Output("progress-bar", "label")],
+    [Input("interval-progress", "n_intervals")],
+)
+def update_progress(n):
+    global IDX, DF_PARCELS_MOD
+    # check progress of uploading
+    # n_intervals are constrained to be in 0-100
+    if len(DF_PARCELS_MOD):
+        if IDX < len(DF_PARCELS_MOD) - 1:
+            progress = int(IDX / len(DF_PARCELS_MOD) * 100)
+        else:
+            progress = 100
+        # only add text after 5% progress to ensure text isn't squashed too much
+        return progress, f"{IDX}/{len(DF_PARCELS_MOD)}" if progress >= 5 else ""
     return no_update
 
 
