@@ -217,14 +217,13 @@ def btns_callback(n_login, cond, n_demo, n_upload, usr, psw, table_data):
                 PAGE, _ = LOOP.run_until_complete(upload_parcel(PAGE, row))
                 time.sleep(1.5)
 
-                if (IDX + 1) % 3 == 0:
-                    # create browser
-                    BROWSER, PAGE = LOOP.run_until_complete(close_browser(BROWSER))
-                    time.sleep(1)
-                    # login
-                    PAGE, x = LOOP.run_until_complete(login_to_lpe(PAGE, usr, psw))
-                    time.sleep(1)
-                    print('Browser recreated')
+                # create browser
+                BROWSER, PAGE = LOOP.run_until_complete(close_browser(BROWSER))
+                time.sleep(1)
+                # login
+                PAGE, x = LOOP.run_until_complete(login_to_lpe(PAGE, usr, psw))
+                time.sleep(1)
+                print('Browser recreated')
 
                 print(DF_PARCELS_MOD.loc[IDX, 'Gavėjas'], f"{IDX + 1}/{len(DF_PARCELS_MOD)}")
 
@@ -278,3 +277,4 @@ def update_progress(n):
 # run app
 if __name__ == '__main__':
     app.run_server(debug=True)
+    # app.run_server(host="0.0.0.0")
